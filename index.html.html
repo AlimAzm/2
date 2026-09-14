@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Шеф из холодильника — ИИ-генератор рецептов</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #FF4757;
+            --primary-hover: #FF3344;
+            --accent: #FFA502;
+            --success: #2ED573;
+            --bg: #F1F2F6;
+            --surface: #FFFFFF;
+            --text-main: #2F3542;
+            --text-muted: #747D8C;
+            --border: #CED6E0;
+            --radius-lg: 20px;
+            --radius-sm: 12px;
+            --shadow: 0 12px 35px rgba(255, 71, 87, 0.12);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 40px 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 35px;
+        }
+
+        .badge-pill {
+            display: inline-block;
+            background: rgba(255, 71, 87, 0.15);
+            color: var(--primary);
+            font-weight: 700;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            padding: 6px 16px;
+            border-radius: 50px;
+            margin-bottom: 12px;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            color: var(--text-main);
+            margin-bottom: 8px;
+        }
+
+        header p {
+            color: var(--text-muted);
+            font-size: 1.05rem;
+        }
+
+        .card {
+            background: var(--surface);
+            padding: 30px;
+            border-radius: var(--radius-lg);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            border: 2px solid #E4E7EB;
+            margin-bottom: 25px;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin: 25px 0 12px 0;
+            padding-bottom: 6px;
+            border-bottom: 2px solid var(--bg);
+        }
+
+        .section-header:first-of-type {
+            margin-top: 0;
+        }
+
+        .ingredients-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #F8F9FA;
+            border: 2px solid var(--border);
+            padding: 10px 12px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.2s ease;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .checkbox-label:hover {
+            background: #FFF0F1;
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .checkbox-inner {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .checkbox-label input[type="checkbox"] {
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--text-muted);
+            border-radius: 5px;
+            background: white;
+            cursor: pointer;
+            display: grid;
+            place-content: center;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .checkbox-label input[type="checkbox"]::before {
+            content: "";
+            width: 8px;
+            height: 5px;
+            border-left: 2px solid white;
+            border-bottom: 2px solid white;
+            transform: rotate(-45deg) scale(0);
+            transition: transform 0.2s ease-in-out;
+        }
+
+        .checkbox-label input[type="checkbox"]:checked {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .checkbox-label input[type="checkbox"]:checked::before {
+            transform: rotate(-45deg) scale(1);
+        }
+
+        /* Кнопка удаления пользовательского ингредиента */
+        .delete-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 1.1rem;
+            padding: 0 4px;
+            line-height: 1;
+            transition: color 0.2s;
+        }
+
+        .delete-btn:hover {
+            color: var(--primary);
+        }
+
+        .custom-section {
+            margin-top: 25px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .custom-section input {
+            flex: 1;
+            padding: 12px 18px;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 0.95rem;
+            font-family: inherit;
+            outline: none;
+            transition: all 0.2s ease;
+            background: #F8F9FA;
+        }
+
+        .custom-section input:focus {
+            border-color: var(--primary);
+            background: white;
+            box-shadow: 0 0 0 4px rgba(255, 71, 87, 0.15);
+        }
+
+        button.btn-primary {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: var(--radius-sm);
+            font-size: 1.05rem;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.25s ease;
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        button.btn-primary:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+        }
+
+        button:disabled {
+            background: var(--border);
+            box-shadow: none;
+            cursor: not-allowed;
+            transform: none !important;
+            color: var(--text-muted);
+        }
+
+        #loader {
+            display: none;
+            background: var(--surface);
+            padding: 40px;
+            border-radius: var(--radius-lg);
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            border: 2px solid #E4E7EB;
+            margin-bottom: 25px;
+        }
+
+        .chef-pulse {
+            font-size: 3.2rem;
+            margin-bottom: 15px;
+            animation: pulse 1s infinite alternate ease-in-out;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.15); }
+        }
+
+        .loading-text {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .recipe-card {
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            border: 2px solid #E4E7EB;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+            animation: fadeInUp 0.4s ease forwards;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .recipe-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 6px;
+            height: 100%;
+            background: var(--success);
+        }
+
+        .recipe-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 15px;
+            margin-bottom: 12px;
+        }
+
+        .recipe-card h4 {
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: var(--text-main);
+        }
+
+        .tag {
+            background: rgba(46, 213, 115, 0.15);
+            color: #1BAC52;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 5px 12px;
+            border-radius: 50px;
+        }
+
+        .recipe-meta-info {
+            color: var(--accent);
+            font-size: 0.9rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .recipe-section-title {
+            font-weight: 700;
+            color: var(--text-main);
+            margin-top: 12px;
+            margin-bottom: 4px;
+            font-size: 1rem;
+        }
+
+        .recipe-card p {
+            color: var(--text-muted);
+            line-height: 1.6;
+            font-size: 0.95rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <span class="badge-pill">ИИ-Помощник на кухне</span>
+        <h1>Шеф из холодильника</h1>
+        <p>Выберите продукты, чтобы получить яркие и вкусные рецепты</p>
+    </header>
+
+    <div class="card">
+        <div class="section-header">🥩 Мясо и птица</div>
+        <div class="ingredients-grid" id="meatGrid"></div>
+
+        <div class="section-header">🦐 Рыба и морепродукты</div>
+        <div class="ingredients-grid" id="seafoodGrid"></div>
+
+        <div class="section-header">🧀 Молочные продукты и яйца</div>
+        <div class="ingredients-grid" id="dairyGrid"></div>
+
+        <div class="section-header">🥦 Овощи и зелень</div>
+        <div class="ingredients-grid" id="veggiesGrid"></div>
+
+        <div class="section-header">🌾 Бакалея и углеводы</div>
+        <div class="ingredients-grid" id="pantryGrid"></div>
+
+        <div class="section-header" style="color: var(--primary);">⭐ Ваши продукты</div>
+        <div class="ingredients-grid" id="customGrid"></div>
+
+        <div class="custom-section">
+            <input type="text" id="customIngredient" placeholder="Свой продукт (например: авокадо)..." onkeypress="handleKeyPress(event)">
+            <button type="button" class="btn-primary" style="width: auto;" onclick="addCustomIngredient()">Добавить</button>
+        </div>
+
+        <div style="margin-top: 25px;">
+            <button class="btn-primary" id="generateBtn" onclick="generateRecipes()">
+                Придумать рецепты с ИИ 🚀
+            </button>
+        </div>
+    </div>
+
+    <div id="loader">
+        <div class="chef-pulse">🍳</div>
+        <div class="loading-text" id="loadingText">ИИ анализирует вкусовые сочетания...</div>
+    </div>
+
+    <div id="resultsContainer"></div>
+</div>
+
+<script>
+    const categories = {
+        meat: ["Куриная грудка", "Говядина", "Свинина", "Фарш", "Бекон", "Сосиски", "Индейка"],
+        seafood: ["Креветки", "Лосось", "Крабовые палочки", "Кальмары", "Белая рыба", "Морской коктейль"],
+        dairy: ["Яйца", "Сыр твердый", "Молоко", "Сметана", "Сливки", "Творог", "Сливочное масло", "Моцарелла"],
+        veggies: ["Картофель", "Помидоры", "Огурцы", "Лук", "Чеснок", "Кабачок", "Грибы", "Перец", "Морковь", "Брокколи", "Шпинат"],
+        pantry: ["Макароны", "Рис", "Гречка", "Мука", "Томатная паста", "Кукуруза", "Фасоль", "Соевый соус"]
+    };
+
+    // Отдельный массив для пользовательских продуктов
+    let customIngredients = [];
+
+    function renderCategories() {
+        for (let key in categories) {
+            const grid = document.getElementById(key + 'Grid');
+            if(!grid) continue;
+            grid.innerHTML = '';
+            categories[key].forEach(item => {
+                const label = document.createElement('label');
+                label.className = 'checkbox-label';
+                label.innerHTML = `
+                    <div class="checkbox-inner">
+                        <input type="checkbox" value="${item}"> 
+                        <span>${item}</span>
+                    </div>
+                `;
+                grid.appendChild(label);
+            });
+        }
+
+        // Отрисовка секции «Ваши продукты» с кнопками удаления
+        const customGrid = document.getElementById('customGrid');
+        customGrid.innerHTML = '';
+        
+        if (customIngredients.length === 0) {
+            customGrid.innerHTML = '<span style="color: var(--text-muted); font-size: 0.9rem; grid-column: 1/-1;">Вы пока ничего не добавили</span>';
+            return;
+        }
+
+        customIngredients.forEach(item => {
+            const label = document.createElement('label');
+            label.className = 'checkbox-label';
+            label.style.borderColor = 'var(--primary)';
+            label.innerHTML = `
+                <div class="checkbox-inner">
+                    <input type="checkbox" value="${item}" checked> 
+                    <span>${item}</span>
+                </div>
+                <button type="button" class="delete-btn" onclick="removeCustomIngredient('${item}', event)" title="Удалить">×</button>
+            `;
+            customGrid.appendChild(label);
+        });
+    }
+
+    renderCategories();
+
+    function addCustomIngredient() {
+        const input = document.getElementById('customIngredient');
+        const val = input.value.trim();
+        if(val && !customIngredients.includes(val)) {
+            customIngredients.push(val);
+            renderCategories();
+            input.value = '';
+        }
+    }
+
+    function handleKeyPress(e) {
+        if (e.key === 'Enter') {
+            addCustomIngredient();
+        }
+    }
+
+    function removeCustomIngredient(item, event) {
+        event.preventDefault(); // Предотвращаем срабатывание клика по чекбоксу
+        customIngredients = customIngredients.filter(i => i !== item);
+        renderCategories();
+    }
+
+    async function generateRecipes() {
+        const selected = Array.from(document.querySelectorAll('input[type="checkbox"]:checked')).map(el => el.value);
+
+        if (selected.length === 0) {
+            alert('Пожалуйста, выберите хотя бы один продукт!');
+            return;
+        }
+
+        const loader = document.getElementById('loader');
+        const loadingText = document.getElementById('loadingText');
+        const resultsContainer = document.getElementById('resultsContainer');
+        const generateBtn = document.getElementById('generateBtn');
+
+        loader.style.display = 'block';
+        resultsContainer.innerHTML = '';
+        generateBtn.disabled = true;
+
+        const steps = [
+            "🔍 Сканируем содержимое вашего холодильника...",
+            "🧂 Подбираем идеальные специи и текстуры...",
+            "🔥 Включаем виртуальную духовку на максимум...",
+            "✨ Сертифицированный ИИ-шеф оформляет подачу..."
+        ];
+
+        for (let i = 0; i < steps.length; i++) {
+            loadingText.textContent = steps[i];
+            await new Promise(r => setTimeout(r, 600));
+        }
+
+        loader.style.display = 'none';
+        generateBtn.disabled = false;
+
+        const main = selected[0] || 'Продукт';
+        const second = selected[1] || 'Специи';
+
+        const recipes = [
+            {
+                title: `Фирменное блюдо «Фьюжн-микс»`,
+                time: "⏱ Время: 20 минут",
+                difficulty: "Легко",
+                ingredients: `${selected.join(', ')}, чеснок, масло, соль/перец.`,
+                steps: `1. Подготовьте и измельчите основные компоненты (${main}, ${second}).<br>2. Обжарьте на разогретой сковороде с добавлением чеснока до появления аппетитной корочки.<br>3. Уменьшите огонь, тушите еще 5-7 минут и подавайте горячим.`
+            },
+            {
+                title: `Домашняя запеканка «Гармония вкусов»`,
+                time: "⏱ Время: 35 минут",
+                difficulty: "Средне",
+                ingredients: `${selected.slice(0, 4).join(', ')}, специи, зелень.`,
+                steps: `1. Выложите выбранные продукты слоями в смазанную форму для запекания.<br>2. Залейте легким соусом или посыпьте оставшимся сыром.<br>3. Отправьте в разогретую до 180°C духовку на 25 минут до золотистой корочки.`
+            },
+            {
+                title: `Быстрый экспресс-салат`,
+                time: "⏱ Время: 10 минут",
+                difficulty: "Очень легко",
+                ingredients: `${selected.slice(0, 3).join(', ')}, масло или легкая заправка.`,
+                steps: `1. Нарежьте выбранные свежие компоненты тонкими аккуратными ломтиками.<br>2. Соедините в глубокой тарелке, добавьте специи по вкусу.<br>3. Заправьте маслом и аккуратно перемешайте перед подачей.`
+            }
+        ];
+
+        let html = '';
+        recipes.forEach(r => {
+            html += `
+                <div class="recipe-card">
+                    <div class="recipe-header">
+                        <h4>${r.title}</h4>
+                        <span class="tag">${r.difficulty}</span>
+                    </div>
+                    <div class="recipe-meta-info">${r.time}</div>
+                    <p><strong>Ингредиенты:</strong> ${r.ingredients}</p>
+                    <div class="recipe-section-title">Приготовление:</div>
+                    <p>${r.steps}</p>
+                </div>
+            `;
+        });
+
+        resultsContainer.innerHTML = html;
+        resultsContainer.scrollIntoView({ behavior: 'smooth' });
+    }
+</script>
+
+</body>
+</html>
